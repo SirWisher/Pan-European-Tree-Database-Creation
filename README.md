@@ -11,13 +11,16 @@ The current script generates timeseries of images based on the samples provided 
 
 How to operate?
 * Create a Google Service Account and a project, enable GEE APIs and create a json validation key.
-* Be sure to download all necessary python packages and try to validate. If successful then the main script runs (it operates currently only in Linux Subsystem).
-* DO NOT CHANGE the thread number as they provide consistent times
-* Change the string Country with the relevant country name (eg Sweden), as well as some data/save paths. Add the correct value to the sample_end, which is the total number of samples in the country of interest. 
+* Be sure to download all necessary python packages and try to validate. If successful then all the scripts can run and validate.
+* Run the rasterio-date to create the xml with all you points and labels per country, based on the Pan-European Tree dataset. After you obtained the xml you can run the solver
+* The main script operates currently only in Linux Subsystem and requires the xml from the previous script. Change the string Country with the relevant country name (eg Sweden), as well as some data/save paths. Add the correct value to the sample_end, which is the total number of samples in the country of interest.
+* DO NOT CHANGE the thread number as they provide consistent times.
 * In case the script fails or locks on a specific date without cotninuing, then close it and change the value of sample in solver with the number of samples already downloaded and it will continue from that point on.
 
-solver.py runs the whole script
-datasetDownloader has the queues and tasks
+rasterio_index creates the xml with all the sample ids and labels for a said country based on the Pan-European Tree dataset.
+solver.py runs the whole script.
+datasetDownloader has the queues and tasks.
 def_packages has the filters for the POI, time, removal of duplicates and the number of bands to download.
+rasterio_date creates the xml with all the dates of the samples for a said country. Usually for statistics and it saves the plot as well.
 
 We provide some .rar with the points, as well as some .xml with the daata information. The countries of interest are Finland, Sweden, Norway, Lithuania, Latvia and Estonia. 
