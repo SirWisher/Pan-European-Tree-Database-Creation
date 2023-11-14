@@ -10,11 +10,11 @@ The current script generates timeseries of images based on the samples provided 
 
 
 How to operate?
-a) Create a Google Service Account and a project, enable GEE APIs and create a json validation key.
-b) Be sure to download all necessary python packages and try to validate. If successful then the main script runs (it operates currently only in Linux Subsystem).
-c) DO NOT CHANGE the thread number as they provide consistent times
-d) Change the string Country with the relevant country name (eg Sweden), as well as some data/save paths. Add the correct value to the sample_end, which is the total number of samples in the country of interest. 
-e) In case the script fails or locks on a specific date without cotninuing, then close it and change the value of sample in solver with the number of samples already downloaded and it will continue from that point on.
+* Create a Google Service Account and a project, enable GEE APIs and create a json validation key.
+* Be sure to download all necessary python packages and try to validate. If successful then the main script runs (it operates currently only in Linux Subsystem).
+* DO NOT CHANGE the thread number as they provide consistent times
+* Change the string Country with the relevant country name (eg Sweden), as well as some data/save paths. Add the correct value to the sample_end, which is the total number of samples in the country of interest. 
+* In case the script fails or locks on a specific date without cotninuing, then close it and change the value of sample in solver with the number of samples already downloaded and it will continue from that point on.
 
 solver.py runs the whole script
 datasetDownloader has the queues and tasks
