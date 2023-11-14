@@ -11,8 +11,8 @@ from concurrent.futures import ThreadPoolExecutor
 import def_packages as fun
 
 print('Connecting...')
-service = 'geo-image@vasapozac-geo-dip.iam.gserviceaccount.com'
-path = '/home/vasilzach/geo_key.json'
+service = 'project_name@name.iam.gserviceaccount.com'
+path = 'geo_key.json'
 credentials = ee.ServiceAccountCredentials(service, path)
 ee.Initialize(credentials)
 print('Connected')
@@ -26,14 +26,14 @@ i = 0
 id = 1
 names_ids = []
 
-with fiona.open("/home/vasilzach/Data/Estonia_Points.shp") as shapefile:
+#Create Table of Points
+with fiona.open("/home/Data/Country_Points.shp") as shapefile:
     for record in shapefile:
         name = record['properties']['Name']
         table_of_content[i,0] = i+1
         table_of_content[i,1] = id
-        # table_of_content[i,2] = record['properties']['fid_3']
-        # table_of_content[i,2] = int(record['properties']['CELLCODE'][4:8] + record['properties']['CELLCODE'][9:13])
-        table_of_content[i,2] = int(record['properties']['CELLCODE'][5:8] + record['properties']['CELLCODE'][9:12])
+        table_of_content[i,2] = int(record['properties']['CELLCODE'][4:8] + record['properties']['CELLCODE'][9:13])            #comment only for Estonia Points
+        # table_of_content[i,2] = int(record['properties']['CELLCODE'][5:8] + record['properties']['CELLCODE'][9:12])          #uncomment only for Estonia Points
 
         if tmp_name == 0:
             tmp_name = name
@@ -55,6 +55,7 @@ with fiona.open("/home/vasilzach/Data/Estonia_Points.shp") as shapefile:
 
 print(len(features))
 
+#Keep the right points
 newFs, counts = np.unique(table_of_content[:,2], return_counts=True)
 Final_Features = []
 
@@ -83,6 +84,7 @@ for element in elements:
 for i in final_index:
     Final_Features.append(features[i])
 
+#Get the Dates
 start_date = '2019-12-31'
 end_date = '2021-01-01'
 
@@ -107,13 +109,14 @@ for feat in Final_Features:
     print(num, Elements[num])
     num=num+1
 
+#Save the Dates
 import os
 from openpyxl import Workbook
 
 wb = Workbook()
 ws = wb.active
 
-filename = 'merged_data_dates_Est.xlsx'
+filename = 'merged_data_dates_Country.xlsx'
 script_directory = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_directory, filename)
 
