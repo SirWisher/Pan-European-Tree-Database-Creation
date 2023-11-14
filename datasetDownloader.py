@@ -16,27 +16,23 @@ def datasetFunctionDownloader(thread, tthread, mul, sample, sample_end):
     # logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
     print('Connecting...')
-    service = 'geo-image@vasapozac-geo-dip.iam.gserviceaccount.com'
-    path = '/home/vasilzach/geo_key.json'
+    service = 'project_name@name.iam.gserviceaccount.com'
+    path = 'geo_key.json'
     credentials = ee.ServiceAccountCredentials(service, path)
     ee.Initialize(credentials)
     print('Connected')
 
-    # features = []
-    # with fiona.open("/home/vasilzach/Data/Finland_Points.shp") as shapefile:
-    #     for record in shapefile:
-    #         # name = record['properties']['Name']
-    #         geometry = record['geometry']['coordinates'][:]
-    #         # number = np.shape(geometry)[0]
-    #         feature = ee.FeatureCollection(ee.Geometry.MultiPoint(geometry)).geometry().coordinates()
-    #         features.append(feature)  
-    # print(len(features))
+    number = 0
+    with fiona.open("/home/Data/Country_Points.shp") as shapefile:              #Change Country with the name of the Country eg Sweden_Points
+        for record in shapefile:
+            number += 1 
+    print(number)
 
     features = []
     tmp_name = 0
     tmp_num = 0
     dict_list = []
-    table_of_content = np.empty((5387,3), dtype=int)
+    table_of_content = np.empty((number,3), dtype=int)
     i = 0
     id = 1
     names_ids = []
@@ -46,9 +42,8 @@ def datasetFunctionDownloader(thread, tthread, mul, sample, sample_end):
             name = record['properties']['Name']
             table_of_content[i,0] = i+1
             table_of_content[i,1] = id
-            # table_of_content[i,2] = record['properties']['fid_3']
-            table_of_content[i,2] = int(record['properties']['CELLCODE'][4:8] + record['properties']['CELLCODE'][9:13])
-            # table_of_content[i,2] = int(record['properties']['CELLCODE'][5:8] + record['properties']['CELLCODE'][9:12])
+            table_of_content[i,2] = int(record['properties']['CELLCODE'][4:8] + record['properties']['CELLCODE'][9:13])          #comment only for Estonia Points
+            # table_of_content[i,2] = int(record['properties']['CELLCODE'][5:8] + record['properties']['CELLCODE'][9:12])        #uncomment only for Estonia Points
 
             if tmp_name == 0:
                 tmp_name = name
@@ -68,7 +63,7 @@ def datasetFunctionDownloader(thread, tthread, mul, sample, sample_end):
             features.append(feature)
             tmp_num = tmp_num + 1
 
-    print(len(features))
+    print(len(features))                                                                                            #Must match number
 
     newFs, counts = np.unique(table_of_content[:,2], return_counts=True)
     Final_Features = []
@@ -84,7 +79,6 @@ def datasetFunctionDownloader(thread, tthread, mul, sample, sample_end):
         Poi.append([table_of_content[ilist,0], table_of_content[ilist,1], element])
         Elements.append(element)
         final_index.append(table_of_content[ilist,0][0])
-        # print(table_of_content[ilist,2][0])
 
     # one entry
     indexes = np.where(counts == 1)[0]
@@ -98,6 +92,7 @@ def datasetFunctionDownloader(thread, tthread, mul, sample, sample_end):
     for i in final_index:
         Final_Features.append(features[i])
 
+    #range of dates
     start_date = '2020-01-01'
     end_date = '2021-01-01'
 
@@ -120,12 +115,9 @@ def datasetFunctionDownloader(thread, tthread, mul, sample, sample_end):
         cloud = image.toList(s).map(fun.cloud_cover).getInfo()
         filtered = fun.filterImages(image, cloud, date, ind, Id, s).map(fun.crop(bounds))
         s_filter = filtered.size().getInfo()
-        # print(s_filter)
         filtered_casted = [ee.Image(filtered.get(n)) for n in range(s_filter)]
 
-        # folder_path = '/mnt/g/Dataset/Norway/Sample_Point_' + str(job+1)
-        folder_path = '/mnt/g/Dataset/Latvia/Sample_Point_' + str(final_index[job])
-        # print(final_index[job])
+        folder_path = '/mnt/g/Dataset/Country/Sample_Point_' + str(final_index[job])                        #Change Country with the name of the Country eg Sweden/Sample_Point_'
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
@@ -169,14 +161,12 @@ def datasetFunctionDownloader(thread, tthread, mul, sample, sample_end):
             q.task_done()
         return 0
         
-    # folder_path = '/home/vasilzach/Images/'
-    # fun.remove_folder_contents(folder_path)
+    # folder_path = '/home/Images/'
+    # fun.remove_folder_contents(folder_path)                    #if you need to remove folder items for some reason
 
     manager = mp.Manager()
     filterData =  manager.Queue()
-    # manager2 = mp.Manager()
     q = manager.Queue()
-    # manager3 = mp.Manager()
     RETRIES = manager.Queue()
     Total_Time = []
     inside = 0
@@ -188,38 +178,6 @@ def datasetFunctionDownloader(thread, tthread, mul, sample, sample_end):
 
     for i in range(sample,sample_end,mul):
         start = time.time()
-        # filter_list = []
-        # bounds_list = []
-        # folder_path_list = []
-
-        # for j in range(0,mul):
-        #     feat = features[i+j]
-        #     lat = feat.get(0).getInfo()
-        #     lon = feat.get(1).getInfo()
-        #     if type(feat.get(0).getInfo()) is not float:
-        #         f = np.array(feat.getInfo())
-        #         lat = f[0][0]
-        #         lon = f[0][1]
-
-        #     bounds = ee.Geometry.Polygon(fun.cube(ee.Geometry.Point([lat, lon]).transform('EPSG:3035').coordinates().getInfo()))
-        #     image = ee.ImageCollection('COPERNICUS/S2_SR').filterBounds(bounds).filterDate(start_date, end_date).filterMetadata('CLOUDY_PIXEL_PERCENTAGE', 'less_than', 60)
-
-        #     s = image.size().getInfo()
-        #     date = image.toList(s).map(fun.date_form).getInfo()
-        #     ind = image.toList(s).map(fun.coord_size).getInfo()
-        #     Id = image.toList(s).map(fun.indexes).getInfo()
-        #     cloud = image.toList(s).map(fun.cloud_cover).getInfo()
-
-        #     filtered = fun.filterImages(image, cloud, date, ind, Id, s).map(fun.crop(bounds))
-        #     filtered_casted = [ee.Image(filtered.get(n)) for n in range(73)]
-            
-        #     folder_path = '/mnt/g/Dataset/Spain/Sample_Point_' + str(i+j+1)
-        #     if not os.path.exists(folder_path):
-        #         os.makedirs(folder_path)
-
-        #     filter_list.append(filtered_casted)
-        #     bounds_list.append(bounds)
-        #     folder_path_list.append(folder_path)
 
         with ThreadPoolExecutor(max_workers=mul) as producer:  
             for job in range(mul):   
@@ -236,8 +194,6 @@ def datasetFunctionDownloader(thread, tthread, mul, sample, sample_end):
                     for b in range(12):
                         f = producer.submit(task1, filter, b, q)
                     filterData.task_done()
-                    # f = producer.submit(task1, job, filter_list, bounds_list,  folder_path_list, b, q)
-                # g = consumer.submit(task2, q)  
         concurrent.futures.wait([f])  
         print('Requests time taken: {}'.format(time.time() - sstart))
 
@@ -252,10 +208,6 @@ def datasetFunctionDownloader(thread, tthread, mul, sample, sample_end):
             #     logging.info('Number of active threads: ' + str(consumer._work_queue.qsize()))
             # while consumer._work_queue.qsize() != 0:
             #     logging.info('Number of active threads: ' + str(consumer._work_queue.qsize()))
-            # while len(os.listdir(folder_path)) != 876:
-            #     if len(os.listdir(folder_path)) == 876:
-            #         print(len(os.listdir(folder_path)))
-
 
         size = RETRIES.qsize()
         # print('RETRIES Size ' + str(size))
